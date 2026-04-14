@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>研究生GBTI特质测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 自定义一些动画和过渡效果 */
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* 隐藏滚动条但保留滚动功能 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-gray-800 font-sans antialiased min-h-screen flex flex-col no-scrollbar relative">
+
+    <!-- GitHub 链接图标 -->
+    <a href="https://github.com/morgan-ruijie/" target="_blank" rel="noopener noreferrer" 
+       class="fixed top-4 right-4 md:top-8 md:right-8 z-50 p-2 text-gray-400 hover:text-gray-900 bg-white/50 hover:bg-white/80 backdrop-blur rounded-full shadow-sm hover:shadow-md transition-all duration-300"
+       title="访问我的 GitHub 主页">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+    </a>
+
+    <!-- 主容器 -->
+    <div id="app" class="flex-grow flex items-center justify-center w-full"></div>
+
+    <!-- 自定义 Toast 提示框 -->
+    <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 opacity-0 pointer-events-none z-50 translate-y-[-20px]">
+        已复制到剪贴板，快去分享吧！
+    </div>
+
+    <script>
+        // --- 静态 SVG 图标定义 ---
+        const icons = {
+            book: `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>`,
+            chevronRight: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>`,
+            coffee: `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 1 1 0 8h-1"></path><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"></path><line x1="6" x2="6" y1="2" y2="4"></line><line x1="10" x2="10" y1="2" y2="4"></line><line x1="14" x2="14" y1="2" y2="4"></line></svg>`,
+            alertCircle: `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg>`,
+            trophy: `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path></svg>`,
+            brain: `<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"></path><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"></path><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"></path><path d="M17.599 6.5a3 3 0 0 0 .399-1.375"></path><path d="M6.003 5.125A3 3 0 0 0 6.401 6.5"></path><path d="M3.477 10.896a4 4 0 0 1 .585-.396"></path><path d="M19.938 10.5a4 4 0 0 1 .585.396"></path><path d="M6 18a4 4 0 0 1-1.967-.516"></path><path d="M19.967 17.484A4 4 0 0 1 18 18"></path></svg>`,
+            share: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"></line><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"></line></svg>`,
+            rotate: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>`,
+            arrowLeft: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>`,
+            home: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`
+        };
+
+        // --- 数据定义区 ---
+        const RESULT_TYPES = {
+            A: {
+                title: "纯血牛马型", subtitle: "实验室的终极耗材",
+                icon: icons.coffee, iconColor: "text-amber-700", colorClass: "bg-amber-100 text-amber-800 border-amber-300",
+                description: "你的生活被组会、汇报、跑腿和无止尽的实验/代码填满。导师的一句“在吗”，能让你心梗三秒。你的发量正在以肉眼可见的速度后退，颈椎和腰椎总有一个在抗议。虽然很累，但你也是实验室最不可或缺的基石（或者说，最便宜的劳动力）。",
+                stats: { sanity: "10%", hair: "岌岌可危", graduation: "靠熬", catchphrase: "收到，老师！" }
+            },
+            B: {
+                title: "锦鲤放养型", subtitle: "野生科研选手",
+                icon: icons.alertCircle, iconColor: "text-emerald-500", colorClass: "bg-emerald-100 text-emerald-800 border-emerald-300",
+                description: "你的导师可能是一位大忙人，或者极其佛系。你拥有极其充裕的个人时间，甚至可以在实验室光明正大地看剧、打游戏。你常常因为不知道该干什么而感到短暂的空虚，然后在临近开题/中期/毕业时爆发出一股神秘的求生力量，最后总能化险为夷。",
+                stats: { sanity: "85%", hair: "茂密", graduation: "靠玄学", catchphrase: "啊？这就中期了？" }
+            },
+            C: {
+                title: "通天代神仙型", subtitle: "导师的祖宗 / 实验室定海神针",
+                icon: icons.trophy, iconColor: "text-yellow-500", colorClass: "bg-yellow-100 text-yellow-800 border-yellow-300",
+                description: "你就是传说中的六边形战士！你不仅能完美解决自己的课题，还能帮师弟师妹调代码、帮导师写本子。导师看到你就像看到了再生父母，甚至不敢对你大声说话生怕你跑了。你的存在拉高了整个课题组的下限，Nature/Science/顶会正在向你招手。",
+                stats: { sanity: "99%", hair: "依然坚挺（基因好）", graduation: "随时可毕", catchphrase: "这不是很简单吗？" }
+            },
+            D: {
+                title: "学术混子型", subtitle: "Ctrl+C/V 顶级缝合大师",
+                icon: icons.book, iconColor: "text-slate-500", colorClass: "bg-slate-100 text-slate-800 border-slate-300",
+                description: "你对科研毫无敬畏之心，主打一个“及格万岁”。你精通各种学术垃圾制造技巧，深谙格式排版、降重修改的门道。遇到问题第一反应是去知乎/B站找平替方案，或者求助AI。你的最高学术追求就是：盲审千万别碰上硬茬子，让我毕业就行！",
+                stats: { sanity: "100%（没心没肺）", hair: "正常", graduation: "游走在延毕边缘", catchphrase: "能毕业就行" }
+            },
+            E: {
+                title: "情绪稳定打工人型", subtitle: "八小时工作制的坚定捍卫者",
+                icon: icons.brain, iconColor: "text-blue-500", colorClass: "bg-blue-100 text-blue-800 border-blue-300",
+                description: "你拥有极其清晰的边界感！你把读研严格视为一份月薪极低但必须完成的打工体验。早上9点准时出现，下午5点半绝不多留一秒。面对导师的画大饼或PUA，你内心毫无波澜甚至想笑。你效率极高，只做分内之事，主打一个情绪极其稳定。",
+                stats: { sanity: "稳如老狗", hair: "保养得当", graduation: "计划之中", catchphrase: "下班了，明天再说" }
+            }
+        };
+
+        const QUESTIONS = [
+            { q: "1. 晚上11点半，导师突然在微信群里发了一篇论文并@你，你的反应是：", options: [ { text: "立马从床上弹起，回复“收到，这就看！”", type: "A" }, { text: "假装没看见，第二天早上9点再回复。", type: "E" }, { text: "粗略扫一眼，心想“这算啥，我昨天刚看完相关的更好的一篇”。", type: "C" }, { text: "群里只有我和导师两人吗？不是的话就等别人先回。", type: "B" }, { text: "长按消息->翻译，看不懂，睡觉。", type: "D" } ] },
+            { q: "2. 你目前的发量状态可以用以下哪个词形容？", options: [ { text: "郁郁葱葱，甚至想去打薄。", type: "B" }, { text: "秋风扫落叶，洗头必堵下水道。", type: "A" }, { text: "稳定维持在不至于秃顶的基准线上。", type: "E" }, { text: "聪明绝顶，不在乎外表，只在乎发顶会。", type: "C" }, { text: "还行吧，反正天天不洗头戴个帽子就行。", type: "D" } ] },
+            { q: "3. 距离下一次组会汇报还有三天，你的进度是：", options: [ { text: "已经做好了精美的PPT，甚至预判了导师的问题。", type: "C" }, { text: "刚建好一个名为“汇报PPT_新建.pptx”的空白文件。", type: "D" }, { text: "还在疯狂跑数据/做实验，祈祷组会前能出一个能用的结果。", type: "A" }, { text: "按照排期，我今天做完大纲，明天填内容，绝不加班赶。", type: "E" }, { text: "组会？啥组会？导师好像出差了，这周应该不开了！", type: "B" } ] },
+            { q: "4. 当你的实验数据/代码结果和预期完全相反时，你的第一操作是：", options: [ { text: "怀疑人生，痛哭流涕，准备通宵排查所有步骤。", type: "A" }, { text: "一眼看出是环境配置或者某个边界条件的问题，5分钟改好。", type: "C" }, { text: "这不挺好？换个角度写个新故事，缝合一下说不定能发。", type: "D" }, { text: "记录下错误现象，关机下班，明天工作时间再查。", type: "E" }, { text: "去找师兄/师姐：“救命啊！这玩意儿怎么自己变成这样了！”", type: "B" } ] },
+            { q: "5. 你的电脑桌面一般是什么样子的？", options: [ { text: "极其整洁，文件按项目、日期、版本号严谨归类。", type: "E" }, { text: "全是名为“未命名文档”、“新建文件夹(2)”、“11111”的垃圾。", type: "D" }, { text: "堆满了下载还没看的PDF文献，看着就让人窒息。", type: "A" }, { text: "背景是财神爷或杨超越，主打一个赛博祈福。", type: "B" }, { text: "没几根文件，大部分都在服务器或者云端，甚至常用终端界面。", type: "C" } ] },
+            { q: "6. 如果让你给自己的导师打标签，最合适的是：", options: [ { text: "剥削者 / 微操大师 / PUA王者", type: "A" }, { text: "隐形人 / 慈祥的老大爷 / 报销提款机", type: "B" }, { text: "我的下属（划掉） / 很好的合作者 / 提供经费的人", type: "C" }, { text: "老板。仅此而已，按时发工资就行。", type: "E" }, { text: "求求您高抬贵手放我毕业的大恩人。", type: "D" } ] },
+            { q: "7. 你的周末通常是如何度过的？", options: [ { text: "什么周末？读研还有周末？一直在实验室！", type: "A" }, { text: "睡到自然醒，打游戏，逛街，彻底断网。", type: "E" }, { text: "去参加学术会议，或者觉得有个idea很好玩，自己写两行代码。", type: "C" }, { text: "在寝室躺尸，因为太无聊可能会去实验室坐一会儿摸鱼。", type: "B" }, { text: "疯狂补平时没写的作业或者看剧。", type: "D" } ] },
+            { q: "8. 面对同门/同组的求助，你的态度是：", options: [ { text: "热心肠，虽然自己一团糟但还是尽力帮，然后两人一起抱头痛哭。", type: "A" }, { text: "直接帮他把核心代码写了/把实验框架搭好，“看懂了吗？很简单”。", type: "C" }, { text: "超出工作范围，委婉拒绝，或者发个链接让他自己看。", type: "E" }, { text: "“我也不会啊，要不我们去问问xxx吧？”", type: "B" }, { text: "“这个啊，你去知乎搜xxx，有一篇一模一样的！”", type: "D" } ] },
+            { q: "9. 写论文对你来说是一件怎样的事情？", options: [ { text: "东拼西凑，改写扩写，降重软件是我的神。", type: "D" }, { text: "行云流水，把平时的积淀转化成文字，享受创造的过程。", type: "C" }, { text: "痛苦的憋字过程，经常写着写着就崩溃想退学。", type: "A" }, { text: "项目管理，定好每天写500字，不紧不慢。", type: "E" }, { text: "不到死线不掉眼泪，截稿前三天化身无情的打字机。", type: "B" } ] },
+            { q: "10. 导师给你画大饼（例如“这篇发了我们冲顶刊”、“留下来读博吧”），你内心：", options: [ { text: "激动万分，觉得导师器重我，继续玩命干！", type: "A" }, { text: "内心冷笑，表面附和，转身继续投我的秋招简历。", type: "E" }, { text: "觉得好笑，顶刊我自己就能发，读博我不一定找您。", type: "C" }, { text: "左耳进右耳出，反问导师“那报销的字能签一下吗？”", type: "B" }, { text: "表面疯狂点头，内心：赶紧让我硕士混毕业吧求求了。", type: "D" } ] },
+            { q: "11. 发现实验室仪器坏了 / 服务器崩了：", options: [ { text: "自己动手修，顺便把整个系统重构优化了一遍。", type: "C" }, { text: "天塌了！我明天组会的数据怎么办！到处求爷爷告奶奶！", type: "A" }, { text: "太好了！有正当理由不干活了，回宿舍打游戏！", type: "B" }, { text: "立刻按流程上报设备管理员，然后在工位上等通知。", type: "E" }, { text: "假装不是我弄坏的（如果是我），或者假装没看见。", type: "D" } ] },
+            { q: "12. 你的学术目标其实是：", options: [ { text: "探索未知边界，成为学术大牛。", type: "C" }, { text: "按时毕业，拿到双证，别延毕就行。", type: "D" }, { text: "完成导师交代的指标，平稳度过这几年。", type: "E" }, { text: "只要不被骂，能顺顺利利就行，最好能水两篇。", type: "B" }, { text: "我不知道，我已经累得没有梦想了，只想活着。", type: "A" } ] },
+            { q: "13. 每天到达实验室/工位的第一件事是：", options: [ { text: "泡一杯咖啡，打开邮件和待办事项，开始今天的工作。", type: "E" }, { text: "提心吊胆地看一眼导师在不在，然后赶紧开始补昨天没干完的活。", type: "A" }, { text: "打开最新的顶会论文列表或Arxiv，看看有没有可以秒杀的idea。", type: "C" }, { text: "打开微博/知乎/B站/朋友圈，先刷半小时热搜。", type: "D" }, { text: "我一般不到实验室，除非导师召唤。", type: "B" } ] },
+            { q: "14. 导师批评你做得不好时：", options: [ { text: "完全不往心里去，下班后照样吃喝玩乐。", type: "E" }, { text: "极度自责，陷入长时间的精神内耗和自我怀疑。", type: "A" }, { text: "直接掏出强有力的数据反驳导师的观点。", type: "C" }, { text: "“对对对，您批评得是”，然后继续按自己的混子方式来。", type: "D" }, { text: "导师很少批评我，因为他连我在做什么都不知道。", type: "B" } ] },
+            { q: "15. 面对读研期间的各种繁琐报销流程：", options: [ { text: "被各种贴票、签字折磨得痛不欲生，经常垫钱。", type: "A" }, { text: "仔细阅读财务规定，整理得井井有条，一次性通过。", type: "E" }, { text: "随缘报销，丢三落四，甚至有些小钱懒得报了。", type: "B" }, { text: "让师弟师妹去跑，或者我根本不缺这点经费。", type: "C" }, { text: "找各种同学凑票，主打一个绝对不能亏本。", type: "D" } ] },
+            { q: "16. 提到“师门传承”，你想到的是：", options: [ { text: "一代代传下来的屎山代码和祖传报错。", type: "D" }, { text: "导师对每一届的连环压榨和PUA语录。", type: "A" }, { text: "我是开山大弟子/扛把子，我就是传承本身。", type: "C" }, { text: "聚餐、唱K、师兄师姐找工作内推经验。", type: "B" }, { text: "规范的文档、交接清单和实验室规章制度。", type: "E" } ] },
+            { q: "17. 当你需要学习一个全新的工具/软件时：", options: [ { text: "看一眼官方API文档，半小时后就开始写高级脚本了。", type: "C" }, { text: "找个B站视频，开2倍速看，能跟着抄就行。", type: "D" }, { text: "一边哭一边学，因为明天晚上就要交结果。", type: "A" }, { text: "制定学习计划，每天学一小时，周末不学。", type: "E" }, { text: "买本教材，看了前言就束之高阁，等哪天有心情再说。", type: "B" } ] },
+            { q: "18. 对待盲审/查重，你的态度是：", options: [ { text: "成竹在胸，我的工作量和创新点随便评都是优。", type: "C" }, { text: "提心吊胆，四处烧香拜佛求菩萨保佑。", type: "B" }, { text: "焦虑到失眠，天天梦到盲审被毙掉延毕。", type: "A" }, { text: "熟练运用各种替换同义词、插图大法，强行过关。", type: "D" }, { text: "按学校要求修改，只要按照标准写了，挂不了。", type: "E" } ] },
+            { q: "19. 你在实验室的固定资产主要是：", options: [ { text: "各种抱枕、行军床、眼罩、咖啡罐头（几乎住这了）。", type: "A" }, { text: "顶配机械键盘、双屏显示器、人体工学椅。", type: "C" }, { text: "就一个水杯，随时可以提桶跑路。", type: "E" }, { text: "一堆打印废掉的A4纸和几本从来没看过的书。", type: "D" }, { text: "我连固定工位都没有/很少去。", type: "B" } ] },
+            { q: "20. 听到别的同学发了很好的顶会/期刊：", options: [ { text: "这不就是我昨晚帮他改的那篇吗？", type: "C" }, { text: "羡慕嫉妒恨，然后看看自己一坨屎的数据继续emo。", type: "A" }, { text: "哦，挺厉害的。今天中午去哪吃饭？", type: "E" }, { text: "赶紧去沾沾喜气，求他传授一点水文的玄学经验。", type: "D" }, { text: "与我无关，我只要够毕业要求的那一篇C刊就行了。", type: "B" } ] },
+            { q: "21. 对待同门之间的竞争（比如抢资源、抢第一作者）：", options: [ { text: "我不参与竞争，我直接碾压，一作我拿的心安理得。", type: "C" }, { text: "佛系，你们抢吧，别拉踩我就行。", type: "B" }, { text: "很抗拒但又不敢发声，只能背地里生闷气。", type: "A" }, { text: "根据我对课题的贡献度严格划分，该我的就是我的，不退让。", type: "E" }, { text: "我能不能只挂个二三作毕业啊，我不想干活。", type: "D" } ] },
+            { q: "22. 写毕业论文致谢时，你的真实心情是：", options: [ { text: "感谢我自己这三年来坚强的牛马精神没有死掉。", type: "A" }, { text: "感谢各种AI工具、知网前人、还有Ctrl+C。", type: "D" }, { text: "导师真好，师门真好，这三年很幸运很开心！", type: "B" }, { text: "公事公办的走个过场，感谢一圈格式化名单。", type: "E" }, { text: "写什么致谢，导师估计还要反过来感谢我带活了课题组。", type: "C" } ] },
+            { q: "23. 如果可以选择，时光倒流回大四，你还会考研吗？", options: [ { text: "绝对不会！谁读谁是狗！(汪汪)", type: "A" }, { text: "无所谓，反正去哪都是打卡上班。", type: "E" }, { text: "会啊，读研挺轻松的，还有缓冲期。", type: "B" }, { text: "会，我想去更好的学校，发更牛的文章。", type: "C" }, { text: "不好说，看哪种选择更能让我光明正大地混日子。", type: "D" } ] },
+            { q: "24. 遇到假期（如国庆、五一），你的安排：", options: [ { text: "导师不发话不敢走，或者带个电脑回家继续干活。", type: "A" }, { text: "早就订好机票了，不回微信，天王老子来了我也在度假。", type: "E" }, { text: "顺带去参加个国际顶会，或者去知名企业做交流。", type: "C" }, { text: "回家睡大觉，在各大景点躺平。", type: "B" }, { text: "只要学校不赶人，我就在宿舍躺7天。", type: "D" } ] },
+            { q: "25. 你的邮箱里平时最多的是什么邮件？", options: [ { text: "各大期刊发来的审稿邀请（求我当审稿人）。", type: "C" }, { text: "导师的各种push、任务分配和催命连环call。", type: "A" }, { text: "知网/ResearchGate的推送，从来没点开过。", type: "D" }, { text: "求职投递的自动回复和各种推销邮件。", type: "E" }, { text: "学校教务处的各种常规通知邮件。", type: "B" } ] },
+            { q: "26. 找工作/秋招时，你的优势是：", options: [ { text: "手握数篇顶会，被各大厂/高校疯抢，我选offer。", type: "C" }, { text: "项目经验极度丰富（全是被导师逼出来的）。", type: "A" }, { text: "面试极其冷静理智，对答如流，不卑不亢。", type: "E" }, { text: "没有优势，只有玄学运气和一些东拼西凑的杂技。", type: "D" }, { text: "时间充裕，可以海投几千份简历慢慢挑。", type: "B" } ] },
+            { q: "27. 你觉得读研带给你最大的改变是：", options: [ { text: "心理承受能力大幅提高（其实是被摧残到麻木）。", type: "A" }, { text: "获得了极强的学术视野和独立解决问题的能力。", type: "C" }, { text: "看清了职场和人际关系的本质，更加成熟淡定。", type: "E" }, { text: "掌握了一套糊弄学原理和极限生存法则。", type: "D" }, { text: "好像没什么改变，就是老了三岁。", type: "B" } ] },
+            { q: "28. 对于“延毕”这个词，你的反应是：", options: [ { text: "日常焦虑来源，做梦都在害怕这个词。", type: "A" }, { text: "跟我无关的词汇，我不提前毕业就算客气了。", type: "C" }, { text: "如果导师给钱多，延就延呗（但必须按合同来）。", type: "E" }, { text: "一直在边缘疯狂试探，全看盲审老师手下留情。", type: "D" }, { text: "随遇而安，延就延吧，正好不知道毕业去干嘛。", type: "B" } ] },
+            { q: "29. 导师平时是怎么称呼你的？", options: [ { text: "小王/小李，语气和蔼，但好几个月叫错我的名字。", type: "B" }, { text: "王博/李神，遇到难题甚至还会加个“哥”。", type: "C" }, { text: "直呼大名，伴随着一堆催办事项，像叫一个保洁阿姨。", type: "A" }, { text: "就正常的连名带姓，交代工作。", type: "E" }, { text: "“那个谁，你这论文到底能不能写了？！”", type: "D" } ] },
+            { q: "30. 最后一题，做完这个测试你打算去干嘛？", options: [ { text: "还能干嘛？导师刚刚又找我了，继续去搬砖。", type: "A" }, { text: "下班！立刻！关机走人！", type: "E" }, { text: "挺准的，分享给师弟师妹们乐呵一下。", type: "C" }, { text: "找个舒服的姿势躺下刷手机。", type: "B" }, { text: "复制粘贴测试结果发个朋友圈证明我还活着。", type: "D" } ] }
+        ];
+
+        // --- 状态管理 ---
+        let step = 0;
+        let scores = { A: 0, B: 0, C: 0, D: 0, E: 0 };
+        let answersHistory = []; // 新增：记录用户的选项历史，用于“上一题”撤销
+        let finalResult = null;
+
+        const appDiv = document.getElementById('app');
+
+        // --- 核心逻辑 ---
+        function render() {
+            if (step === 0) {
+                renderStartScreen();
+            } else if (step >= 1 && step <= QUESTIONS.length) {
+                renderQuestionScreen();
+            } else if (step === 31) {
+                renderLoadingScreen();
+                // 模拟加载计算过程
+                setTimeout(() => {
+                    calculateResult();
+                    renderResultScreen();
+                }, 2000);
+            } else if (step === 32) {
+                renderResultScreen();
+            }
+        }
+
+        function handleAnswer(type) {
+            answersHistory.push(type); // 记录当前选择
+            scores[type]++;
+            if (step < QUESTIONS.length) {
+                step++;
+            } else {
+                step = 31; // 进入加载页面
+            }
+            render();
+        }
+
+        function goBack() {
+            if (step > 1) {
+                const lastAnswer = answersHistory.pop(); // 弹出最后一次选择
+                scores[lastAnswer]--; // 减去相应的分数
+                step--; // 回退步数
+                render();
+            }
+        }
+
+        function calculateResult() {
+            let maxScore = -1;
+            let winningType = 'A';
+            for (const [type, score] of Object.entries(scores)) {
+                if (score > maxScore) {
+                    maxScore = score;
+                    winningType = type;
+                }
+            }
+            finalResult = winningType;
+            step = 32;
+        }
+
+        function restart() {
+            scores = { A: 0, B: 0, C: 0, D: 0, E: 0 };
+            answersHistory = []; // 重置历史记录
+            step = 0;
+            finalResult = null;
+            render();
+        }
+
+        function copyResult() {
+            const resultData = RESULT_TYPES[finalResult];
+            const text = `【研究生特质测试】\n我的结果是：${resultData.title}（${resultData.subtitle}）\n🎓精神状态：${resultData.stats.sanity}\n✂️发量状态：${resultData.stats.hair}\n来测测你是哪种科研体质吧！`;
+            
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {
+                console.error('复制失败', err);
+                alert("复制失败，请手动截图分享~");
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('opacity-0', 'translate-y-[-20px]');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-[-20px]');
+            }, 3000);
+        }
+
+        // --- 渲染函数 ---
+        function renderStartScreen() {
+            appDiv.innerHTML = `
+                <div class="fade-in bg-gradient-to-br from-indigo-50 via-white to-purple-50 min-h-screen w-full flex items-center justify-center p-4">
+                    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-indigo-100 p-8 text-center">
+                        <div class="mx-auto w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mb-6 text-indigo-600">
+                            <div class="w-10 h-10">${icons.book}</div>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-800 mb-2">研究生 GBTI 测试</h1>
+                        <p class="text-indigo-600 font-medium mb-6">Graduate Behavior Type Indicator</p>
+                        <p class="text-gray-600 mb-8 text-sm leading-relaxed">
+                            全网超火的研究生特质测试！<br/>
+                            面对导师的PUA、跑不出的数据、头秃的论文，你是哪种生存流派？<br/>
+                            30道直击灵魂的送命题，测出你的真实科研底色。
+                        </p>
+                        <button onclick="handleAnswer('start')" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl transition duration-200 transform hover:scale-[1.02] active:scale-95 shadow-lg flex justify-center items-center gap-2">
+                            开始接受拷问 ${icons.chevronRight}
+                        </button>
+                    </div>
+                </div>
+            `;
+            // 处理首屏点击，由于按钮调用了 handleAnswer，这里拦截一下重置 logic
+            window.handleAnswer = function(type) {
+                if (type === 'start') {
+                    step = 1;
+                    render();
+                } else {
+                    answersHistory.push(type);
+                    scores[type]++;
+                    if (step < QUESTIONS.length) {
+                        step++;
+                    } else {
+                        step = 31;
+                    }
+                    render();
+                }
+            }
+        }
+
+        function renderQuestionScreen() {
+            const currentQ = QUESTIONS[step - 1];
+            const progressPercentage = (step / QUESTIONS.length) * 100;
+            
+            const optionsHtml = currentQ.options.map((opt, index) => `
+                <button onclick="handleAnswer('${opt.type}')" class="w-full text-left p-4 rounded-xl border-2 border-gray-100 hover:border-indigo-400 hover:bg-indigo-50 text-gray-700 hover:text-indigo-800 font-medium transition-all duration-200 active:scale-[0.98] group flex items-center">
+                    <span class="w-8 h-8 flex-none rounded-lg bg-gray-100 group-hover:bg-indigo-200 group-hover:text-indigo-800 flex items-center justify-center text-sm mr-3 font-bold text-gray-500 transition-colors">
+                        ${String.fromCharCode(65 + index)}
+                    </span>
+                    <span>${opt.text}</span>
+                </button>
+            `).join('');
+
+            appDiv.innerHTML = `
+                <div class="fade-in bg-slate-50 min-h-screen w-full flex flex-col p-4 md:p-8 items-center justify-center relative">
+                    
+                    <!-- 左上角重新开始按钮 -->
+                    <button onclick="restart()" class="absolute top-4 left-4 md:top-8 md:left-8 flex items-center gap-1 text-gray-500 hover:text-indigo-600 transition-colors font-medium text-sm bg-white/80 backdrop-blur px-3 py-2 rounded-lg border border-gray-200 shadow-sm hover:shadow">
+                        ${icons.home} 首页
+                    </button>
+
+                    <div class="max-w-xl w-full mt-12 md:mt-0">
+                        <div class="mb-8">
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">答题进度</span>
+                                <span class="text-lg font-black text-indigo-600">${step} <span class="text-sm text-gray-400 font-medium">/ 30</span></span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                                <div class="bg-indigo-600 h-2.5 rounded-full transition-all duration-500 ease-out" style="width: ${progressPercentage}%"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8 mb-4">
+                            <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-8 leading-snug">
+                                ${currentQ.q}
+                            </h2>
+                            <div class="space-y-3">
+                                ${optionsHtml}
+                            </div>
+                            
+                            <!-- 上一题按钮 -->
+                            ${step > 1 ? `
+                            <div class="mt-6 pt-6 border-t border-gray-50 flex justify-start">
+                                <button onclick="goBack()" class="flex items-center gap-1 text-gray-500 hover:text-indigo-600 transition font-medium text-sm px-3 py-2 rounded-lg hover:bg-indigo-50 -ml-3">
+                                    ${icons.arrowLeft} 上一题
+                                </button>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderLoadingScreen() {
+            appDiv.innerHTML = `
+                <div class="fade-in min-h-screen w-full bg-gradient-to-br from-indigo-50 to-purple-50 flex flex-col items-center justify-center p-4">
+                    <div class="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+                    <h2 class="text-xl font-bold text-gray-700">正在生成导师评价表...</h2>
+                    <p class="text-gray-500 mt-2 text-sm">正在计算你的掉发速度与延毕概率...</p>
+                </div>
+            `;
+        }
+
+        function renderResultScreen() {
+            const resultInfo = RESULT_TYPES[finalResult];
+            appDiv.innerHTML = `
+                <div class="fade-in min-h-screen w-full bg-slate-50 flex items-center justify-center p-4 md:p-8 pb-16">
+                    <div class="max-w-md w-full bg-white rounded-3xl shadow-2xl overflow-hidden">
+                        <div class="p-8 pb-10 text-center ${resultInfo.colorClass} relative overflow-hidden">
+                            <div class="absolute top-[-20%] right-[-10%] w-32 h-32 bg-white opacity-20 rounded-full blur-xl"></div>
+                            <div class="absolute bottom-[-10%] left-[-10%] w-24 h-24 bg-white opacity-20 rounded-full blur-lg"></div>
+                            
+                            <div class="bg-white/90 p-4 rounded-full inline-block mb-4 shadow-sm backdrop-blur-sm relative z-10 w-24 h-24 flex items-center justify-center ${resultInfo.iconColor}">
+                                ${resultInfo.icon}
+                            </div>
+                            <h2 class="text-sm font-bold tracking-widest uppercase mb-1 opacity-80">您的检测结果是</h2>
+                            <h1 class="text-4xl font-extrabold mb-2 relative z-10">${resultInfo.title}</h1>
+                            <p class="text-lg font-medium opacity-90">${resultInfo.subtitle}</p>
+                        </div>
+
+                        <div class="p-8">
+                            <div class="mb-6">
+                                <h3 class="text-sm font-bold text-gray-400 uppercase mb-2">特质解析</h3>
+                                <p class="text-gray-700 leading-relaxed text-justify">
+                                    ${resultInfo.description}
+                                </p>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-xl p-4 mb-8 border border-gray-100">
+                                <h3 class="text-sm font-bold text-gray-500 mb-3 border-b pb-2">📊 核心雷达面板</h3>
+                                <ul class="space-y-3">
+                                    <li class="flex justify-between items-center">
+                                        <span class="text-gray-600">🧠 精神状态</span>
+                                        <span class="font-semibold text-gray-800">${resultInfo.stats.sanity}</span>
+                                    </li>
+                                    <li class="flex justify-between items-center">
+                                        <span class="text-gray-600">✂️ 发量剩余</span>
+                                        <span class="font-semibold text-gray-800">${resultInfo.stats.hair}</span>
+                                    </li>
+                                    <li class="flex justify-between items-center">
+                                        <span class="text-gray-600">🎓 毕业前景</span>
+                                        <span class="font-semibold text-gray-800">${resultInfo.stats.graduation}</span>
+                                    </li>
+                                    <li class="flex justify-between items-center">
+                                        <span class="text-gray-600">🗣️ 口头禅</span>
+                                        <span class="font-semibold text-indigo-600 bg-indigo-50 px-2 py-1 rounded text-sm">"${resultInfo.stats.catchphrase}"</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="flex gap-4">
+                                <button onclick="copyResult()" class="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition">
+                                    <div class="w-4 h-4">${icons.share}</div> 分享结果
+                                </button>
+                                <button onclick="restart()" class="flex-none bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-xl flex items-center justify-center transition" title="重新测试">
+                                    <div class="w-5 h-5">${icons.rotate}</div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 初始化渲染
+        render();
+
+    </script>
+</body>
+</html>
